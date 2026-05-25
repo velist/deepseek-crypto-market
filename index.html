@@ -1,110 +1,71 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Crypto Market — Real-time Prices</title>
 <style>
   :root {
-    --bg: #0b0f19;
-    --card: #131a2b;
-    --border: #1e2a3f;
-    --text: #cdd6e4;
-    --muted: #6b7c93;
-    --green: #00d492;
-    --red: #ff4757;
-    --accent: #4f46e5;
+    --bg: #0b0f19; --card: #131a2b; --border: #1e2a3f;
+    --text: #cdd6e4; --muted: #6b7c93; --green: #00d492;
+    --red: #ff4757; --accent: #4f46e5;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
-  body {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    background: var(--bg); color: var(--text); min-height: 100vh;
-  }
-  .container { max-width: 960px; margin: 0 auto; padding: 24px 20px; }
+  body { font-family:'Inter',system-ui,-apple-system,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+  .container { max-width:960px; margin:0 auto; padding:24px 20px; }
 
-  header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 20px 0; border-bottom: 1px solid var(--border); margin-bottom: 28px;
-  }
-  header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
-  header h1 span { color: var(--accent); }
-  .header-right { text-align: right; }
-  .global-mcap { font-size: 1.1rem; font-weight: 600; }
-  .global-change { font-size: 0.85rem; }
-  .global-change.up { color: var(--green); }
-  .global-change.down { color: var(--red); }
-  .refresh-badge {
-    font-size: 0.75rem; color: var(--muted);
-    background: var(--card); border: 1px solid var(--border);
-    padding: 4px 10px; border-radius: 6px; margin-top: 6px; display: inline-block;
-  }
+  header { display:flex; align-items:center; justify-content:space-between; padding:20px 0; border-bottom:1px solid var(--border); margin-bottom:28px; }
+  header h1 { font-size:1.5rem; font-weight:700; letter-spacing:-0.02em; }
+  header h1 span { color:var(--accent); }
+  .header-right { text-align:right; }
+  .global-mcap { font-size:1.1rem; font-weight:600; }
+  .refresh-badge { font-size:0.75rem; color:var(--muted); background:var(--card); border:1px solid var(--border); padding:4px 10px; border-radius:6px; margin-top:6px; display:inline-block; }
 
-  .search-bar {
-    width: 100%; padding: 12px 18px; border-radius: 10px;
-    border: 1px solid var(--border); background: var(--card); color: var(--text);
-    font-size: 0.95rem; margin-bottom: 20px; outline: none; transition: border .2s;
-  }
-  .search-bar:focus { border-color: var(--accent); }
-  .search-bar::placeholder { color: var(--muted); }
+  .lang-switch { display:inline-flex; gap:2px; margin-bottom:6px; }
+  .lang-switch button { background:var(--card); border:1px solid var(--border); color:var(--muted); padding:3px 10px; border-radius:5px; cursor:pointer; font-size:0.75rem; transition:all .15s; }
+  .lang-switch button.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .lang-switch button:hover:not(.active) { border-color:var(--accent); color:var(--text); }
 
-  .table-wrap { border-radius: 14px; overflow: hidden; border: 1px solid var(--border); }
-  table { width: 100%; border-collapse: collapse; }
-  thead { background: #0d1525; }
-  th {
-    text-align: left; padding: 14px 18px; font-size: 0.8rem;
-    text-transform: uppercase; letter-spacing: 0.06em;
-    color: var(--muted); font-weight: 500; border-bottom: 1px solid var(--border);
-  }
-  th:last-child, th:nth-child(3) { text-align: right; }
-  td {
-    padding: 14px 18px; font-size: 0.92rem; border-bottom: 1px solid rgba(30,42,63,0.5);
-  }
-  tr:last-child td { border-bottom: none; }
-  tr:hover td { background: rgba(79,70,229,0.06); }
+  .search-bar { width:100%; padding:12px 18px; border-radius:10px; border:1px solid var(--border); background:var(--card); color:var(--text); font-size:0.95rem; margin-bottom:20px; outline:none; transition:border .2s; }
+  .search-bar:focus { border-color:var(--accent); }
+  .search-bar::placeholder { color:var(--muted); }
 
-  .coin-cell { display: flex; align-items: center; gap: 12px; }
-  .coin-icon {
-    width: 36px; height: 36px; border-radius: 50%; display: flex;
-    align-items: center; justify-content: center; font-weight: 700;
-    font-size: 0.9rem; flex-shrink: 0;
-  }
-  .coin-name { font-weight: 600; }
-  .coin-symbol { color: var(--muted); font-size: 0.8rem; margin-left: 6px; }
+  .table-wrap { border-radius:14px; overflow:hidden; border:1px solid var(--border); }
+  table { width:100%; border-collapse:collapse; }
+  thead { background:#0d1525; }
+  th { text-align:left; padding:14px 18px; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted); font-weight:500; border-bottom:1px solid var(--border); }
+  th:last-child, th:nth-child(3) { text-align:right; }
+  td { padding:14px 18px; font-size:0.92rem; border-bottom:1px solid rgba(30,42,63,0.5); }
+  tr:last-child td { border-bottom:none; }
+  tr:hover td { background:rgba(79,70,229,0.06); }
 
-  .price { font-weight: 600; text-align: right; }
-  .price-cny { color: var(--muted); font-size: 0.8rem; display: block; }
+  .coin-cell { display:flex; align-items:center; gap:12px; }
+  .coin-icon { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.9rem; flex-shrink:0; }
+  .coin-name { font-weight:600; }
+  .coin-symbol { color:var(--muted); font-size:0.8rem; margin-left:6px; }
 
-  .change { text-align: right; font-weight: 600; font-size: 0.9rem; }
-  .change.up { color: var(--green); }
-  .change.down { color: var(--red); }
+  .price { font-weight:600; text-align:right; }
+  .price-cny { color:var(--muted); font-size:0.8rem; display:block; }
 
-  .mcap, .vol { text-align: right; color: var(--muted); font-size: 0.85rem; }
+  .change { text-align:right; font-weight:600; font-size:0.9rem; }
+  .change.up { color:var(--green); }
+  .change.down { color:var(--red); }
 
-  .loader {
-    text-align: center; padding: 60px 0; color: var(--muted);
-  }
-  .spinner {
-    width: 40px; height: 40px; border: 3px solid var(--border);
-    border-top-color: var(--accent); border-radius: 50%;
-    animation: spin .8s linear infinite; margin: 0 auto 16px;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .error {
-    text-align: center; padding: 40px; color: var(--red);
-    background: rgba(255,71,87,0.08); border-radius: 12px; margin: 20px 0;
-  }
+  .mcap, .vol { text-align:right; color:var(--muted); font-size:0.85rem; }
 
-  footer {
-    text-align: center; padding: 32px 0; color: var(--muted); font-size: 0.82rem;
-    border-top: 1px solid var(--border); margin-top: 32px;
-  }
-  footer a { color: var(--accent); text-decoration: none; }
+  .loader { text-align:center; padding:60px 0; color:var(--muted); }
+  .spinner { width:40px; height:40px; border:3px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin .8s linear infinite; margin:0 auto 16px; }
+  @keyframes spin { to{transform:rotate(360deg);} }
+  .error { text-align:center; padding:40px; color:var(--red); background:rgba(255,71,87,0.08); border-radius:12px; margin:20px 0; }
 
-  @media (max-width: 640px) {
-    .container { padding: 12px; }
-    th, td { padding: 10px 8px; font-size: 0.8rem; }
-    .mcap, .vol { display: none; }
-    th:nth-child(5), th:nth-child(6), td:nth-child(5), td:nth-child(6) { display: none; }
+  footer { text-align:center; padding:32px 0; color:var(--muted); font-size:0.82rem; border-top:1px solid var(--border); margin-top:32px; }
+  footer a { color:var(--accent); text-decoration:none; }
+
+  @media(max-width:640px) {
+    .container { padding:12px; }
+    th,td { padding:10px 8px; font-size:0.8rem; }
+    .mcap,.vol { display:none; }
+    th:nth-child(5),th:nth-child(6),td:nth-child(5),td:nth-child(6) { display:none; }
   }
 </style>
 </head>
@@ -113,39 +74,108 @@
   <header>
     <h1>🪙 <span>Crypto</span> Market</h1>
     <div class="header-right">
+      <div class="lang-switch">
+        <button data-lang="en" class="active">EN</button>
+        <button data-lang="zh">中文</button>
+      </div>
       <div class="global-mcap" id="globalMcap">—</div>
-      <div class="global-change" id="globalChange">—</div>
-      <div class="refresh-badge" id="refreshBadge">⏳ Loading...</div>
+      <div class="refresh-badge" id="refreshBadge">⏳ ...</div>
     </div>
   </header>
 
-  <input class="search-bar" id="search" placeholder="🔍 Search coin..." autocomplete="off">
+  <input class="search-bar" id="search" placeholder="🔍 ..." autocomplete="off">
 
   <div class="table-wrap">
     <table>
       <thead>
         <tr>
-          <th>Coin</th>
-          <th>Price</th>
-          <th>24h Change</th>
-          <th>Market Cap</th>
-          <th>24h Volume</th>
+          <th id="thCoin">Coin</th>
+          <th id="thPrice">Price</th>
+          <th id="thChange">24h Change</th>
+          <th id="thMcap">Market Cap</th>
+          <th id="thVol">24h Volume</th>
         </tr>
       </thead>
       <tbody id="tbody">
-        <tr><td colspan="5"><div class="loader"><div class="spinner"></div>Loading...</div></td></tr>
+        <tr><td colspan="5"><div class="loader"><div class="spinner"></div><span id="loadingText">Loading...</span></div></td></tr>
       </tbody>
     </table>
   </div>
 
-  <footer>
-    Data from <a href="https://www.coingecko.com/" target="_blank">CoinGecko</a> ·
-    Auto-refresh every 30s ·
-    <a href="https://github.com/velist/deepseek-crypto-market" target="_blank">GitHub</a>
-  </footer>
+  <footer id="footerText">Data from CoinGecko · Auto-refresh 30s · GitHub</footer>
 </div>
 
 <script>
+// ── i18n ────────────────────────────────────
+const I18N = {
+  en: {
+    searchPlaceholder: '🔍 Search coin...',
+    thCoin: 'Coin', thPrice: 'Price', thChange: '24h Change',
+    thMcap: 'Market Cap', thVol: '24h Volume',
+    loading: 'Loading...', noResult: 'No results',
+    totalMcap: 'Total MCap',
+    refresh: '{n}s to refresh',
+    failPrefix: 'Failed',
+    failHint: 'Check network or try later',
+    footer: 'Data from <a href="https://www.coingecko.com/" target="_blank">CoinGecko</a> · Auto-refresh every 30s · <a href="https://github.com/velist/deepseek-crypto-market" target="_blank">GitHub</a>',
+  },
+  zh: {
+    searchPlaceholder: '🔍 搜索币种...',
+    thCoin: '币种', thPrice: '价格', thChange: '24h 涨跌',
+    thMcap: '市值', thVol: '24h 成交量',
+    loading: '加载中...', noResult: '无匹配结果',
+    totalMcap: '总市值',
+    refresh: '{n}秒后刷新',
+    failPrefix: '加载失败',
+    failHint: '请检查网络或稍后重试',
+    footer: '数据来自 <a href="https://www.coingecko.com/" target="_blank">CoinGecko</a> · 每30秒自动刷新 · <a href="https://github.com/velist/deepseek-crypto-market" target="_blank">GitHub</a>',
+  }
+};
+
+let lang = 'en';
+function t(key, vars) {
+  let s = (I18N[lang] || I18N.en)[key] || key;
+  if (vars) for (const k in vars) s = s.replace('{'+k+'}', vars[k]);
+  return s;
+}
+
+function applyLang() {
+  document.querySelector('html').lang = lang === 'zh' ? 'zh-CN' : 'en';
+  document.title = lang === 'zh' ? 'Crypto Market — 实时行情' : 'Crypto Market — Real-time Prices';
+  document.getElementById('search').placeholder = t('searchPlaceholder');
+  document.getElementById('thCoin').textContent = t('thCoin');
+  document.getElementById('thPrice').textContent = t('thPrice');
+  document.getElementById('thChange').textContent = t('thChange');
+  document.getElementById('thMcap').textContent = t('thMcap');
+  document.getElementById('thVol').textContent = t('thVol');
+  document.getElementById('loadingText').textContent = t('loading');
+  document.getElementById('footerText').innerHTML = t('footer');
+  document.querySelectorAll('.lang-switch button').forEach(b => {
+    b.classList.toggle('active', b.dataset.lang === lang);
+  });
+  // Re-render with current data
+  if (lastData) render(lastData, document.getElementById('search').value);
+}
+
+function setLang(l) {
+  lang = l;
+  localStorage.setItem('crypto-market-lang', l);
+  applyLang();
+}
+
+// Init lang from URL > localStorage > browser > en
+const params = new URLSearchParams(location.search);
+const urlLang = params.get('lang');
+const stored = localStorage.getItem('crypto-market-lang');
+const browserLang = (navigator.language||'').startsWith('zh') ? 'zh' : 'en';
+setLang(urlLang || stored || browserLang);
+
+// Lang switch buttons
+document.querySelectorAll('.lang-switch button').forEach(b => {
+  b.addEventListener('click', () => setLang(b.dataset.lang));
+});
+
+// ── Config ───────────────────────────────────
 const REFRESH = 30;
 const COINS = [
   { id:'bitcoin',      sym:'BTC',  name:'Bitcoin',       color:'#f7931a' },
@@ -160,6 +190,7 @@ const COINS = [
   { id:'sui',          sym:'SUI',  name:'Sui',           color:'#4da2ff' },
 ];
 
+// ── Formatters ───────────────────────────────
 const F = {
   usd(n) {
     if (n >= 1e12) return '$'+(n/1e12).toFixed(2)+'T';
@@ -173,6 +204,7 @@ const F = {
   pct(p) { return (p>=0?'+':'')+p.toFixed(2)+'%'; }
 };
 
+// ── Fetch ────────────────────────────────────
 async function fetchPrices() {
   const ids = COINS.map(c=>c.id).join(',');
   const u = `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd,cny&include_24hr_change=true&include_market_cap=true&include_24hr_vol=true`;
@@ -192,7 +224,7 @@ function render(data, filter) {
     .sort((a,b)=>b.mcap-a.mcap);
 
   const total = rows.reduce((t,r)=>t+(r.mcap||0),0);
-  document.getElementById('globalMcap').textContent = 'Total MCap ' + F.usd(total);
+  document.getElementById('globalMcap').textContent = t('totalMcap') + ' ' + F.usd(total);
 
   document.getElementById('tbody').innerHTML = rows.length
     ? rows.map(r=>`
@@ -206,23 +238,27 @@ function render(data, filter) {
         <td><div class="mcap">${F.usd(r.mcap)}</div></td>
         <td><div class="vol">${F.usd(r.vol)}</div></td>
       </tr>`).join('')
-    : '<tr><td colspan="5"><div class="loader">No results</div></td></tr>';
+    : `<tr><td colspan="5"><div class="loader">${t('noResult')}</div></td></tr>`;
 }
 
 async function load() {
   try {
     const d = await fetchPrices();
     render(d, document.getElementById('search').value);
-    document.getElementById('refreshBadge').textContent = `🔄 ${REFRESH}s to refresh`;
+    document.getElementById('refreshBadge').textContent = '🔄 ' + t('refresh', {n: REFRESH});
   } catch(e) {
     document.getElementById('tbody').innerHTML =
-      `<tr><td colspan="5"><div class="error">Failed: ${e.message}<br><small>Check network or try later</small></div></td></tr>`;
-    document.getElementById('refreshBadge').textContent = '❌ Load failed';
+      `<tr><td colspan="5"><div class="error">${t('failPrefix')}: ${e.message}<br><small>${t('failHint')}</small></div></td></tr>`;
+    document.getElementById('refreshBadge').textContent = '❌ ' + t('failPrefix');
   }
 }
 
 let cd = REFRESH;
-setInterval(()=>{cd--;if(cd<=0)cd=REFRESH;document.getElementById('refreshBadge').textContent=`🔄 ${cd}s to refresh`;},1000);
+setInterval(()=>{
+  cd--;
+  if (cd<=0) cd=REFRESH;
+  document.getElementById('refreshBadge').textContent = '🔄 ' + t('refresh', {n: cd});
+}, 1000);
 
 document.getElementById('search').addEventListener('input', ()=>{
   if (lastData) render(lastData, document.getElementById('search').value);

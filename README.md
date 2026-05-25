@@ -5,7 +5,7 @@
 </p>
 
 <h1 align="center">🪙 crypto-market</h1>
-<p align="center"><strong>通用 AI Agent Skill — 实时加密货币行情查询</strong></p>
+<p align="center"><strong>Universal AI Agent Skill — Real-time Cryptocurrency Prices</strong></p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/compatible-Claude_Code-7b5ea7?style=flat-square" alt="Claude Code">
@@ -18,22 +18,23 @@
 <p align="center">
   <img src="https://img.shields.io/github/license/velist/deepseek-crypto-market?style=flat-square" alt="License">
   <img src="https://img.shields.io/github/stars/velist/deepseek-crypto-market?style=flat-square" alt="Stars">
+  <a href="README_CN.md">中文文档</a>
 </p>
 
 ---
 
-## 这是什么？
+## What is this?
 
-一个 **通用 AI Agent Skill**，兼容 Claude Code / DeepSeek TUI / Codex / OpenClaw / Cursor / Windsurf 等主流 AI 编程助手。
+A **universal AI Agent Skill** compatible with Claude Code / DeepSeek TUI / Codex / OpenClaw / Cursor / Windsurf and other mainstream AI coding assistants.
 
-当你在任意兼容 Agent 中说"看下币价"或"虚拟币行情"，Agent 会自动调用 CoinGecko 免费 API，拉取 10 种主流币种的实时价格、市值、24h 涨跌幅，并格式化输出。
+When you say "show me crypto prices" or "what's Bitcoin at" in any compatible agent, it automatically calls the CoinGecko free API to fetch real-time prices, market cap, 24h change, and volume for 10 major cryptocurrencies — then formats the output.
 
-**零配置、零密钥、即装即用。**
+**Zero config. Zero API keys. Drop it in and go.**
 
-## 兼容的 Agent
+## Compatible Agents
 
-| Agent | 安装命令 |
-|-------|---------|
+| Agent | Install Command |
+|-------|----------------|
 | **Claude Code** | `git clone ... ~/.claude/skills/crypto-market` |
 | **DeepSeek TUI** | `/skill install velist/deepseek-crypto-market` |
 | **Codex** | `git clone ... .codex/skills/crypto-market` |
@@ -41,59 +42,58 @@
 | **Cursor** | `git clone ... .cursor/skills/crypto-market` |
 | **Windsurf** | `git clone ... .windsurf/skills/crypto-market` |
 
-## 快速安装
+## Quick Install
 
 ```bash
-# 通用安装（替换为你的 agent 对应目录）
+# Generic install (replace with your agent's skills directory)
 git clone https://github.com/velist/deepseek-crypto-market.git <skills-dir>/crypto-market
 
-# 示例：Claude Code
+# Example: Claude Code
 git clone https://github.com/velist/deepseek-crypto-market.git ~/.claude/skills/crypto-market
 
-# 示例：DeepSeek TUI（内置 skill-installer）
+# Example: DeepSeek TUI (built-in skill installer)
 /skill install velist/deepseek-crypto-market
 ```
 
-## 使用方式
+## Usage
 
-安装后，在任何兼容 Agent 中直接说：
+Once installed, just talk to your agent naturally:
 
 ```
+Show me crypto prices
+What's Bitcoin at right now?
+How's the crypto market today?
+Check ETH SOL ADA prices
 看下虚拟币行情
-BTC 现在多少钱
-最近 crypto 市场怎么样
-ETH SOL ADA 价格走势
-What's Bitcoin price today?
-Show me the crypto market
 ```
 
-Agent 会自动加载 skill → 运行脚本 → 返回格式化行情。
+The agent auto-loads the skill → runs the script → returns formatted output.
 
-### 效果
+### Sample Output
 
 ```
-**BTC**  — $76,958（¥522,105）  📈 +0.34%  市值 $1.54T  24h量 $21.7B
-**ETH**  — $2,094（¥14,208）    📉 -1.07%  市值 $253B   24h量 $9.5B
-**SOL**  — $84.84（¥575.61）    📉 -0.97%  市值 $49B    24h量 $2.4B
-**XRP**  — $1.35（¥9.13）       📉 -1.01%  市值 $83B    24h量 $1.1B
-**BNB**  — $656.31（¥4,453）    ➖ -0.02%  市值 $88B    24h量 $608M
+**BTC**  — $76,958（¥522,105）  📈 +0.34%  MCap $1.54T  Vol $21.7B
+**ETH**  — $2,094（¥14,208）    📉 -1.07%  MCap $253B   Vol $9.5B
+**SOL**  — $84.84（¥575.61）    📉 -0.97%  MCap $49B    Vol $2.4B
+**XRP**  — $1.35（¥9.13）       📉 -1.01%  MCap $83B    Vol $1.1B
+**BNB**  — $656.31（¥4,453）    ➖ -0.02%  MCap $88B    Vol $608M
 ...
 ```
 
-### 进阶：命令行直接使用
+### CLI Usage
 
 ```bash
-# 查 BTC + ETH，只要 USD
+# Fetch BTC + ETH, USD only
 python scripts/crypto_fetch.py --coins btc,eth --vs usd
 
-# 查所有默认币种
+# All defaults (10 coins, USD+CNY)
 python scripts/crypto_fetch.py
 ```
 
-## 支持的币种（10 种）
+## Supported Coins (10)
 
-| 别名 | 名称 | CoinGecko ID |
-|:-----|:-----|:-------------|
+| Ticker | Name | CoinGecko ID |
+|:-------|:-----|:-------------|
 | BTC  | Bitcoin | bitcoin |
 | ETH  | Ethereum | ethereum |
 | SOL  | Solana | solana |
@@ -105,31 +105,32 @@ python scripts/crypto_fetch.py
 | AVAX | Avalanche | avalanche-2 |
 | SUI  | Sui | sui |
 
-## 文件结构
+## File Structure
 
 ```
 crypto-market/
-├── SKILL.md                    # Skill 元数据与 Agent 指令
-├── README.md                   # 你正在看的这个文件
-├── index.html                  # Web 行情面板（可浏览器打开）
+├── SKILL.md                    # Skill metadata & agent instructions
+├── README.md                   # This file (English)
+├── README_CN.md                # Chinese docs
+├── index.html                  # Web dashboard (open in browser)
 └── scripts/
-    └── crypto_fetch.py         # CoinGecko API 封装脚本
+    └── crypto_fetch.py         # CoinGecko API wrapper
 ```
 
-## Web 面板
+## Web Dashboard
 
-仓库中包含一个独立的 Web 行情面板（`index.html`），无需后端，浏览器直接打开即可查看实时行情。
+A standalone, zero-backend web dashboard (`index.html`) with dark theme and Chinese/English toggle. Just open it in a browser.
 
-👉 [在线预览](https://velist.github.io/deepseek-crypto-market/)
+👉 [Live Preview](https://velist.github.io/deepseek-crypto-market/)
 
-## 依赖
+## Dependencies
 
-- **Python 3.8+**（仅标准库，无第三方依赖）
-- CoinGecko **免费公开 API**，无需注册
+- **Python 3.8+** (stdlib only — zero third-party packages)
+- CoinGecko **free public API** — no registration required
 
-## 数据来源
+## Data Source
 
-价格数据来自 [CoinGecko API](https://www.coingecko.com/en/api)，有 1-3 分钟延迟。免费 Tier 限制约 30 次/分钟。
+Prices via [CoinGecko API](https://www.coingecko.com/en/api). 1–3 minute delay. Free tier: ~30 req/min.
 
 ## License
 

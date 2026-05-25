@@ -74,7 +74,7 @@
   <header>
     <h1>🪙 <span>Crypto</span> Market</h1>
     <div class="header-right">
-      <div class="lang-switch">
+      <div class="lang-switch" id="langSwitch">
         <button data-lang="en" class="active">EN</button>
         <button data-lang="zh">中文</button>
       </div>
@@ -83,7 +83,7 @@
     </div>
   </header>
 
-  <input class="search-bar" id="search" placeholder="🔍 ..." autocomplete="off">
+  <input class="search-bar" id="search" placeholder="🔍 Search coin..." autocomplete="off">
 
   <div class="table-wrap">
     <table>
@@ -102,12 +102,16 @@
     </table>
   </div>
 
-  <footer id="footerText">Data from CoinGecko · Auto-refresh 30s · GitHub</footer>
+  <footer>
+    <span id="footerText">Data from CoinGecko · Auto-refresh 30s · GitHub</span>
+  </footer>
 </div>
 
 <script>
-// ── i18n ────────────────────────────────────
-const I18N = {
+(function() {
+'use strict';
+
+var I18N = {
   en: {
     searchPlaceholder: '🔍 Search coin...',
     thCoin: 'Coin', thPrice: 'Price', thChange: '24h Change',
@@ -132,52 +136,16 @@ const I18N = {
   }
 };
 
-let lang = 'en';
+var lang = 'en';
 function t(key, vars) {
-  let s = (I18N[lang] || I18N.en)[key] || key;
-  if (vars) for (const k in vars) s = s.replace('{'+k+'}', vars[k]);
+  var dict = I18N[lang] || I18N.en;
+  var s = dict[key] || key;
+  if (vars) for (var k in vars) s = s.split('{'+k+'}').join(vars[k]);
   return s;
 }
 
-function applyLang() {
-  document.querySelector('html').lang = lang === 'zh' ? 'zh-CN' : 'en';
-  document.title = lang === 'zh' ? 'Crypto Market — 实时行情' : 'Crypto Market — Real-time Prices';
-  document.getElementById('search').placeholder = t('searchPlaceholder');
-  document.getElementById('thCoin').textContent = t('thCoin');
-  document.getElementById('thPrice').textContent = t('thPrice');
-  document.getElementById('thChange').textContent = t('thChange');
-  document.getElementById('thMcap').textContent = t('thMcap');
-  document.getElementById('thVol').textContent = t('thVol');
-  document.getElementById('loadingText').textContent = t('loading');
-  document.getElementById('footerText').innerHTML = t('footer');
-  document.querySelectorAll('.lang-switch button').forEach(b => {
-    b.classList.toggle('active', b.dataset.lang === lang);
-  });
-  // Re-render with current data
-  if (lastData) render(lastData, document.getElementById('search').value);
-}
-
-function setLang(l) {
-  lang = l;
-  localStorage.setItem('crypto-market-lang', l);
-  applyLang();
-}
-
-// Init lang from URL > localStorage > browser > en
-const params = new URLSearchParams(location.search);
-const urlLang = params.get('lang');
-const stored = localStorage.getItem('crypto-market-lang');
-const browserLang = (navigator.language||'').startsWith('zh') ? 'zh' : 'en';
-setLang(urlLang || stored || browserLang);
-
-// Lang switch buttons
-document.querySelectorAll('.lang-switch button').forEach(b => {
-  b.addEventListener('click', () => setLang(b.dataset.lang));
-});
-
-// ── Config ───────────────────────────────────
-const REFRESH = 30;
-const COINS = [
+var REFRESH = 30;
+var COINS = [
   { id:'bitcoin',      sym:'BTC',  name:'Bitcoin',       color:'#f7931a' },
   { id:'ethereum',     sym:'ETH',  name:'Ethereum',      color:'#627eea' },
   { id:'solana',       sym:'SOL',  name:'Solana',        color:'#9945ff' },
@@ -190,9 +158,8 @@ const COINS = [
   { id:'sui',          sym:'SUI',  name:'Sui',           color:'#4da2ff' },
 ];
 
-// ── Formatters ───────────────────────────────
-const F = {
-  usd(n) {
+var F = {
+  usd: function(n) {
     if (n >= 1e12) return '$'+(n/1e12).toFixed(2)+'T';
     if (n >= 1e9)  return '$'+(n/1e9).toFixed(2)+'B';
     if (n >= 1e6)  return '$'+(n/1e6).toFixed(2)+'M';
@@ -200,72 +167,150 @@ const F = {
     if (n >= 0.01) return '$'+n.toFixed(4);
     return '$'+n.toFixed(8);
   },
-  cny(n) { return '¥'+n.toLocaleString('en-US',{maximumFractionDigits:2}); },
-  pct(p) { return (p>=0?'+':'')+p.toFixed(2)+'%'; }
+  cny: function(n) { return '\u00a5'+n.toLocaleString('en-US',{maximumFractionDigits:2}); },
+  pct: function(p) { return (p>=0?'+':'')+p.toFixed(2)+'%'; }
 };
 
-// ── Fetch ────────────────────────────────────
-async function fetchPrices() {
-  const ids = COINS.map(c=>c.id).join(',');
-  const u = `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd,cny&include_24hr_change=true&include_market_cap=true&include_24hr_vol=true`;
-  const r = await fetch(u, {cache:'no-cache'});
-  if (!r.ok) throw Error(`HTTP ${r.status}`);
-  return r.json();
+var lastData = null;
+var langReady = false;
+var el = {};
+
+function cacheDom() {
+  el.search      = document.getElementById('search');
+  el.thCoin      = document.getElementById('thCoin');
+  el.thPrice     = document.getElementById('thPrice');
+  el.thChange    = document.getElementById('thChange');
+  el.thMcap      = document.getElementById('thMcap');
+  el.thVol       = document.getElementById('thVol');
+  el.loadingText = document.getElementById('loadingText');
+  el.footerText  = document.getElementById('footerText');
+  el.globalMcap  = document.getElementById('globalMcap');
+  el.refreshBadge= document.getElementById('refreshBadge');
+  el.tbody       = document.getElementById('tbody');
+  el.langBtns    = document.querySelectorAll('#langSwitch button');
 }
 
-let lastData = null;
+function applyLangUI() {
+  if (!langReady) return;
+  document.querySelector('html').lang = lang === 'zh' ? 'zh-CN' : 'en';
+  document.title = lang === 'zh' ? 'Crypto Market — 实时行情' : 'Crypto Market — Real-time Prices';
 
-function render(data, filter) {
-  lastData = data;
-  const s = (filter||'').toLowerCase();
-  const rows = COINS
-    .map(c=>{const d=data[c.id];return d?{...c,pUSD:d.usd,pCNY:d.cny,chg:d.usd_24h_change||0,mcap:d.usd_market_cap,vol:d.usd_24h_vol}:null;})
-    .filter(r=>r&&(!s||r.sym.toLowerCase().includes(s)||r.name.toLowerCase().includes(s)))
-    .sort((a,b)=>b.mcap-a.mcap);
+  el.search.placeholder = t('searchPlaceholder');
+  el.thCoin.textContent  = t('thCoin');
+  el.thPrice.textContent = t('thPrice');
+  el.thChange.textContent= t('thChange');
+  el.thMcap.textContent  = t('thMcap');
+  el.thVol.textContent   = t('thVol');
+  el.loadingText.textContent = t('loading');
+  el.footerText.innerHTML = t('footer');
 
-  const total = rows.reduce((t,r)=>t+(r.mcap||0),0);
-  document.getElementById('globalMcap').textContent = t('totalMcap') + ' ' + F.usd(total);
+  el.langBtns.forEach(function(b) {
+    b.classList.toggle('active', b.dataset.lang === lang);
+  });
 
-  document.getElementById('tbody').innerHTML = rows.length
-    ? rows.map(r=>`
-      <tr>
-        <td><div class="coin-cell">
-          <div class="coin-icon" style="background:${r.color}20;color:${r.color}">${r.sym[0]}</div>
-          <div><span class="coin-name">${r.name}</span><span class="coin-symbol">${r.sym}</span></div>
-        </div></td>
-        <td><div class="price">${F.usd(r.pUSD)}</div><div class="price-cny">${F.cny(r.pCNY)}</div></td>
-        <td><div class="change ${r.chg>=0?'up':'down'}">${F.pct(r.chg)}</div></td>
-        <td><div class="mcap">${F.usd(r.mcap)}</div></td>
-        <td><div class="vol">${F.usd(r.vol)}</div></td>
-      </tr>`).join('')
-    : `<tr><td colspan="5"><div class="loader">${t('noResult')}</div></td></tr>`;
-}
-
-async function load() {
-  try {
-    const d = await fetchPrices();
-    render(d, document.getElementById('search').value);
-    document.getElementById('refreshBadge').textContent = '🔄 ' + t('refresh', {n: REFRESH});
-  } catch(e) {
-    document.getElementById('tbody').innerHTML =
-      `<tr><td colspan="5"><div class="error">${t('failPrefix')}: ${e.message}<br><small>${t('failHint')}</small></div></td></tr>`;
-    document.getElementById('refreshBadge').textContent = '❌ ' + t('failPrefix');
+  if (lastData) {
+    renderTable(lastData, el.search.value);
+  } else {
+    el.loadingText.textContent = t('loading');
   }
 }
 
-let cd = REFRESH;
-setInterval(()=>{
-  cd--;
-  if (cd<=0) cd=REFRESH;
-  document.getElementById('refreshBadge').textContent = '🔄 ' + t('refresh', {n: cd});
-}, 1000);
+function setLang(l) {
+  if (l !== 'en' && l !== 'zh') l = 'en';
+  lang = l;
+  try { localStorage.setItem('crypto-market-lang', l); } catch(_) {}
+  applyLangUI();
+}
 
-document.getElementById('search').addEventListener('input', ()=>{
-  if (lastData) render(lastData, document.getElementById('search').value);
+function fetchPrices() {
+  var ids = COINS.map(function(c){return c.id;}).join(',');
+  var u = 'https://api.coingecko.com/api/v3/simple/price?ids='+ids+'&vs_currencies=usd,cny&include_24hr_change=true&include_market_cap=true&include_24hr_vol=true';
+  return fetch(u, {cache:'no-cache'}).then(function(r) {
+    if (!r.ok) throw new Error('HTTP '+r.status);
+    return r.json();
+  });
+}
+
+function renderTable(data, filter) {
+  lastData = data;
+  var s = (filter||'').toLowerCase();
+  var rows = COINS
+    .map(function(c) {
+      var d = data[c.id];
+      return d ? { coin:c, pUSD:d.usd, pCNY:d.cny, chg:d.usd_24h_change||0, mcap:d.usd_market_cap, vol:d.usd_24h_vol } : null;
+    })
+    .filter(function(r) {
+      return r && (!s || r.coin.sym.toLowerCase().indexOf(s)>=0 || r.coin.name.toLowerCase().indexOf(s)>=0);
+    })
+    .sort(function(a,b) { return b.mcap - a.mcap; });
+
+  var total = rows.reduce(function(t,r) { return t + (r.mcap||0); }, 0);
+  el.globalMcap.textContent = t('totalMcap') + ' ' + F.usd(total);
+
+  if (rows.length === 0) {
+    el.tbody.innerHTML = '<tr><td colspan="5"><div class="loader">'+t('noResult')+'</div></td></tr>';
+    return;
+  }
+
+  el.tbody.innerHTML = rows.map(function(r) {
+    var chgClass = r.chg >= 0 ? 'up' : 'down';
+    return '<tr>'+
+      '<td><div class="coin-cell">'+
+        '<div class="coin-icon" style="background:'+r.coin.color+'20;color:'+r.coin.color+'">'+r.coin.sym[0]+'</div>'+
+        '<div><span class="coin-name">'+r.coin.name+'</span><span class="coin-symbol">'+r.coin.sym+'</span></div>'+
+      '</div></td>'+
+      '<td><div class="price">'+F.usd(r.pUSD)+'</div><div class="price-cny">'+F.cny(r.pCNY)+'</div></td>'+
+      '<td><div class="change '+chgClass+'">'+F.pct(r.chg)+'</div></td>'+
+      '<td><div class="mcap">'+F.usd(r.mcap)+'</div></td>'+
+      '<td><div class="vol">'+F.usd(r.vol)+'</div></td>'+
+    '</tr>';
+  }).join('');
+}
+
+function showError(msg) {
+  el.tbody.innerHTML = '<tr><td colspan="5"><div class="error">'+t('failPrefix')+': '+msg+'<br><small>'+t('failHint')+'</small></div></td></tr>';
+  el.refreshBadge.textContent = '\u274c ' + t('failPrefix');
+}
+
+function loadPrices() {
+  fetchPrices().then(function(d) {
+    renderTable(d, el.search.value);
+    el.refreshBadge.textContent = '\ud83d\udd04 ' + t('refresh', {n: REFRESH});
+  }).catch(function(e) {
+    showError(e.message);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  cacheDom();
+  langReady = true;
+
+  var params = new URLSearchParams(location.search);
+  var urlLang = params.get('lang');
+  var stored = null;
+  try { stored = localStorage.getItem('crypto-market-lang'); } catch(_) {}
+  var browserLang = (navigator.language||'').indexOf('zh')===0 ? 'zh' : 'en';
+  setLang(urlLang || stored || browserLang);
+
+  el.langBtns.forEach(function(b) {
+    b.addEventListener('click', function() { setLang(b.dataset.lang); });
+  });
+
+  el.search.addEventListener('input', function() {
+    if (lastData) renderTable(lastData, el.search.value);
+  });
+
+  loadPrices();
+  var cd = REFRESH;
+  setInterval(function() {
+    cd--;
+    if (cd <= 0) cd = REFRESH;
+    el.refreshBadge.textContent = '\ud83d\udd04 ' + t('refresh', {n: cd});
+  }, 1000);
+  setInterval(loadPrices, REFRESH * 1000);
 });
 
-load();
-setInterval(load, REFRESH*1000);
+})();
 </script>
 </body>
 </html>
